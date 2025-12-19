@@ -9,8 +9,20 @@ function printf(valor : string) {
   process.stdout.write(valor);
 }
 
+rl.on('close', () => {
+  process.exit(0);
+});
+
+
 printf('$ ')
 rl.on('line', (input) => {
-  printf(`${input}: command not found\n`)
+
+  const command = input.trim()
+
+  if(input == 'exit') {
+    rl.close()
+    return;
+  }
+  printf(`${command}: command not found\n`)
   printf('$ ')
 })
