@@ -27,7 +27,7 @@ function noCommandMatch(command : string){
 
 function typef(value : string, availableCommands : string[]) {
   if(availableCommands.includes(value)) printf(`${value} is a shell builtin\n`)
-  else noCommandMatch(value);
+  else printf(`${value}: not found\n`);
 }
 
 
