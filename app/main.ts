@@ -26,13 +26,19 @@ function noCommandMatch(command : string){
 }
 
 function typef(value : string, availableCommands : string[]) {
-  if(availableCommands.includes(value)) printf(`${value} is a shell builtin\n`)
-  else printf(`${value}: not found\n`);
+  if(availableCommands.includes(value)) {
+    printf(`${value} is a shell builtin\n`)
+  } else {
+    let localExec = Bun.which(value);
+    if(localExec){
+      printf(`${value} is ${localExec}\n`)
+    }
+    else printf(`${value}: not found\n`);
+  }
 }
 
-
 function main(){
-  const availableCommands = ['echo', 'type', 'exit'];
+  const builtinCommands = ['echo', 'type', 'exit'];
   printf('$ ')
   rl.on('line', (input) => {
     let inputArray = input.trim().split(' ');
@@ -46,7 +52,7 @@ function main(){
         echo(args);
         break;
       case'type':
-        typef(args, availableCommands);
+        typef(args, builtinCommands);
         break;
       default:
         noCommandMatch(command);
