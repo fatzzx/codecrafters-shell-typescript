@@ -1,54 +1,56 @@
 import { createInterface } from "readline";
 import typef from "./commands/type";
+import printf from "./util/printf";
+import echo from "./commands/echo";
+import verifyIfTheExecExistsOrHasPermissions from "./util/findFile";
+import external_commands from "./commands/external_commands";
 
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
+  terminal: false,
 });
 
-function printf(value: string) {
-  process.stdout.write(value);
-}
-
-rl.on('close', () => {
+rl.on("close", () => {
   process.exit(0);
 });
 
 function exit() {
-  rl.close()
-}
-
-function echo(value: string) {
-  printf(value + '\n');
+  rl.close();
 }
 
 function noCommandMatch(command: string) {
-  printf(`${command}: command not found\n`)
+  printf(`${command}: command not found\n`);
 }
 
-
 function main() {
-  const builtinCommands = ['echo', 'type', 'exit'];
-  printf('$ ')
-  rl.on('line', async (input) => {
-    let inputArray = input.trim().split(' ');
-    const command = inputArray[0]
-    let args = (inputArray.length > 1) ? inputArray.slice(1).join(' ') : '';
+  const builtinCommands = ["echo", "type", "exit"];
+  printf("$ ");
+  rl.on("line", async (input) => {
+    if (!input.trim()) {
+      printf("$ ");
+      return;
+    }
+    const inputArray = input.trim().split(/\s+/);
+    const command = inputArray[0];
+    let args = inputArray.length > 1 ? inputArray.slice(1).join(" ") : "";
     switch (command) {
-      case 'exit':
+      case "exit":
         exit();
         return;
-      case 'echo':
+      case "echo":
         echo(args);
         break;
-      case 'type':
+      case "type":
         await typef(args, builtinCommands);
         break;
       default:
-        noCommandMatch(command);
+        if (await verifyIfTheExecExistsOrHasPermissions(command))
+          await external_commands(command, args);
+        else noCommandMatch(command);
     }
-    printf('$ ')
-  })
+    printf("$ ");
+  });
 }
 
 main();
