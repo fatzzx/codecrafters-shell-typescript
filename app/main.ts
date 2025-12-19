@@ -5,24 +5,47 @@ const rl = createInterface({
   output: process.stdout,
 });
 
-function printf(valor : string) {
-  process.stdout.write(valor);
+function printf(value : string) {
+  process.stdout.write(value);
 }
 
 rl.on('close', () => {
   process.exit(0);
 });
 
-
-printf('$ ')
-rl.on('line', (input) => {
-
-  const command = input.trim()
-
-  if(input == 'exit') {
+function exit(){
     rl.close()
-    return;
-  }
+}
+
+function echo(value : string) {
+  printf(value + '\n');
+}
+
+function noCommandMatch(command : string){
   printf(`${command}: command not found\n`)
+}
+
+
+function main(){
   printf('$ ')
-})
+  rl.on('line', (input) => {
+    let inputArray = input.trim().split(' ');
+    const command = inputArray[0]
+    let args = (inputArray.length > 1) ? inputArray.slice(1).join(' ') : '';
+
+    switch(command){
+      case 'exit':
+        exit()
+        return;
+      case 'echo':
+        echo(args);
+        break;
+      default:
+        noCommandMatch(command);
+    }
+
+    printf('$ ')
+  })
+}
+
+main();
