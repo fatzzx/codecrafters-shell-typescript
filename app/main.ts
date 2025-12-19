@@ -25,25 +25,32 @@ function noCommandMatch(command : string){
   printf(`${command}: command not found\n`)
 }
 
+function typef(value : string, availableCommands : string[]) {
+  if(availableCommands.includes(value)) printf(`${value} is a shell builtin\n`)
+  else noCommandMatch(value);
+}
+
 
 function main(){
+  const availableCommands = ['echo', 'type', 'exit'];
   printf('$ ')
   rl.on('line', (input) => {
     let inputArray = input.trim().split(' ');
     const command = inputArray[0]
     let args = (inputArray.length > 1) ? inputArray.slice(1).join(' ') : '';
-
     switch(command){
       case 'exit':
-        exit()
+        exit();
         return;
       case 'echo':
         echo(args);
         break;
+      case'type':
+        typef(args, availableCommands);
+        break;
       default:
         noCommandMatch(command);
     }
-
     printf('$ ')
   })
 }
