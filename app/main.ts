@@ -4,6 +4,7 @@ import printf from "./util/printf";
 import echo from "./commands/echo";
 import verifyIfTheExecExistsOrHasPermissions from "./util/findFile";
 import external_commands from "./commands/external_commands";
+import pwd from "./commands/pwd";
 
 const rl = createInterface({
   input: process.stdin,
@@ -24,7 +25,7 @@ function noCommandMatch(command: string) {
 }
 
 function main() {
-  const builtinCommands = ["echo", "type", "exit"];
+  const builtinCommands = ["echo", "type", "exit", "pwd"];
   printf("$ ");
   rl.on("line", async (input) => {
     if (!input.trim()) {
@@ -43,6 +44,9 @@ function main() {
         break;
       case "type":
         await typef(args, builtinCommands);
+        break;
+      case "pwd":
+        pwd();
         break;
       default:
         if (await verifyIfTheExecExistsOrHasPermissions(command))
