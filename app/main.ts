@@ -6,6 +6,7 @@ import verifyIfTheExecExistsOrHasPermissions from "./util/findFile";
 import external_commands from "./commands/external_commands";
 import pwd from "./commands/pwd";
 import cd from "./commands/cd";
+import processExp from "./util/processExp";
 
 const rl = createInterface({
   input: process.stdin,
@@ -33,28 +34,30 @@ function main() {
       printf("$ ");
       return;
     }
-    const inputArray = input.trim().split(/\s+/);
-    const command = inputArray[0];
-    let args = inputArray.length > 1 ? inputArray.slice(1).join(" ") : "";
+    // const inputArray = input.trim().split(/\s+/);
+    // const command = inputArray[0];
+    const expression = processExp(input);
+    // let args = inputArray.length > 1 ? inputArray.slice(1).join(" ") : "";
+    const command = expression.command ?? ''
     switch (command) {
       case "exit":
         exit();
         return;
       case "echo":
-        echo(args);
+        echo(expression.args.join(''));
         break;
       case "type":
-        await typef(args, builtinCommands);
+        await typef(expression.args.join(''), builtinCommands);
         break;
       case "pwd":
         pwd();
         break;
       case "cd":
-        await cd(args);
+        await cd(expression.args.join(''));
         break;
       default:
         if (await verifyIfTheExecExistsOrHasPermissions(command))
-          await external_commands(command, args);
+          await external_commands(command, expression.args.join(''));
         else noCommandMatch(command);
     }
     printf("$ ");

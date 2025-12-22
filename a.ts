@@ -1,3 +1,6 @@
-import { delimiter } from "node:path";
+import processExp from "./app/util/processExp";
 
-console.log(Bun.env.HOME);
+
+let teste = " echo hello''oi";
+
+console.log(processExp(teste));
