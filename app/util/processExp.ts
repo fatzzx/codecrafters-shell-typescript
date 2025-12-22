@@ -3,14 +3,20 @@ import type { exp } from "./expType";
 export default function processExp(exp : string) {
     let expression : exp = {command : null, args : []};
     let quote = false;
+    let doubleQuote = false;
     let tmpStr = '';
-    exp = exp.replace(/''/g, '');    
+    exp = exp.replace(/''/g, '');
+    exp = exp.replace(/""/g, '');    
     for(let i = 0; i < exp.length; i++){
-        if (exp[i] == "'"){
+        if (exp[i] == "'" && !doubleQuote){
             quote = !quote;
             continue; 
-        } 
-        if(!quote){
+        }
+        if (exp[i] == '"' && !quote){
+            doubleQuote = !doubleQuote;
+            continue; 
+        }  
+        if(!quote && !doubleQuote){
             if(exp[i] == ' '){
                 if(tmpStr){
                     (expression.command) ? expression.args.push(tmpStr) : expression.command = tmpStr;
@@ -30,11 +36,20 @@ export default function processExp(exp : string) {
             tmpStr += exp[i];
             if((i + 1) <= exp.length && exp[i + 1] == "'"){
                 if(tmpStr) {
-                    expression.args.push(tmpStr);
+                    (expression.command) ? expression.args.push(tmpStr) : expression.command = tmpStr;
                     tmpStr = '';
                 }
             }
+        }
 
+        if(doubleQuote){
+            tmpStr += exp[i];
+            if((i + 1) <= exp.length && exp[i + 1] == '"'){
+                if(tmpStr) {
+                    (expression.command) ? expression.args.push(tmpStr) : expression.command = tmpStr;
+                    tmpStr = '';
+                }
+            }
         }
     }
     return expression;
