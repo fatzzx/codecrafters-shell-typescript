@@ -34,30 +34,27 @@ function main() {
       printf("$ ");
       return;
     }
-    // const inputArray = input.trim().split(/\s+/);
-    // const command = inputArray[0];
     const expression = processExp(input);
-    // let args = inputArray.length > 1 ? inputArray.slice(1).join(" ") : "";
     const command = expression.command ?? ''
     switch (command) {
       case "exit":
         exit();
         return;
       case "echo":
-        echo(expression.args.join(''));
+        echo(expression.args.join(' '));
         break;
       case "type":
-        await typef(expression.args.join(''), builtinCommands);
+        await typef(expression.args.join(' '), builtinCommands);
         break;
       case "pwd":
         pwd();
         break;
       case "cd":
-        await cd(expression.args.join(''));
+        await cd(expression.args.join(' '));
         break;
       default:
         if (await verifyIfTheExecExistsOrHasPermissions(command))
-          await external_commands(command, expression.args.join(''));
+          await external_commands(command, expression.args);
         else noCommandMatch(command);
     }
     printf("$ ");
