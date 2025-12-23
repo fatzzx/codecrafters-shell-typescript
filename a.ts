@@ -1,6 +1,6 @@
 import processExp from "./app/util/processExp";
 
 
-let teste = '';
+let teste = " echo \'\"hello test\"\'";
 
 console.log(processExp(teste));

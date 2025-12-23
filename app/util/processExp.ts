@@ -1,57 +1,80 @@
 import type { exp } from "./expType";
 
-export default function processExp(exp : string) {
-    let expression : exp = {command : null, args : []};
-    let quote = false;
-    let doubleQuote = false;
-    let tmpStr = '';
-    exp = exp.replace(/''/g, '');
-    exp = exp.replace(/""/g, '');    
-    for(let i = 0; i < exp.length; i++){
-        if (exp[i] == "'" && !doubleQuote){
-            quote = !quote;
-            continue; 
-        }
-        if (exp[i] == '"' && !quote){
-            doubleQuote = !doubleQuote;
-            continue; 
-        }  
-        if(!quote && !doubleQuote){
-            if(exp[i] == ' '){
-                if(tmpStr){
-                    (expression.command) ? expression.args.push(tmpStr) : expression.command = tmpStr;
-                    tmpStr = '';
+export default function processExp(exp: string) {
+    let expression: exp = { command: null, args: [] };
+    let currentArg = '';
+    let inSingleQuote = false;
+    let inDoubleQuote = false;
+    let hasArgContent = false;
+    const doubleQuoteSpecialChars = ['\\', '"', '$', '`', '\n'];
+
+    for (let i = 0; i < exp.length; i++) {
+        const char = exp[i];
+
+        if (char === '\\') {
+            if (inSingleQuote) {
+                currentArg += char;
+                hasArgContent = true;
+            } else if (inDoubleQuote) {
+                if (i + 1 < exp.length) {
+                    const nextChar = exp[i + 1];
+                    if (doubleQuoteSpecialChars.includes(nextChar)) {
+                        currentArg += nextChar;
+                        i++;
+                    } else {
+                        currentArg += char;
+                    }
+                    hasArgContent = true;
+                } else {
+                    currentArg += char;
+                    hasArgContent = true;
                 }
-                continue;
+            } else {
+                if (i + 1 < exp.length) {
+                    currentArg += exp[i + 1];
+                    i++;
+                }
+                hasArgContent = true;
             }
-            if(i + 1 == exp.length){
-                tmpStr += exp[i];
-                (expression.command) ? expression.args.push(tmpStr) : expression.command = tmpStr;
-                tmpStr = '';
-            }
-            tmpStr += exp[i];
+            continue;
         }
 
-        if(quote){
-            tmpStr += exp[i];
-            if((i + 1) <= exp.length && exp[i + 1] == "'"){
-                if(tmpStr) {
-                    (expression.command) ? expression.args.push(tmpStr) : expression.command = tmpStr;
-                    tmpStr = '';
-                }
-            }
+        if (char === "'" && !inDoubleQuote) {
+            inSingleQuote = !inSingleQuote;
+            hasArgContent = true;
+            continue;
         }
 
-        if(doubleQuote){
-            tmpStr += exp[i];
-            if((i + 1) <= exp.length && exp[i + 1] == '"'){
-                if(tmpStr) {
-                    (expression.command) ? expression.args.push(tmpStr) : expression.command = tmpStr;
-                    tmpStr = '';
+        if (char === '"' && !inSingleQuote) {
+            inDoubleQuote = !inDoubleQuote;
+            hasArgContent = true;
+            continue;
+        }
+
+        if (char === ' ' && !inSingleQuote && !inDoubleQuote) {
+            if (hasArgContent) {
+                if (!expression.command) {
+                    expression.command = currentArg;
+                } else {
+                    expression.args.push(currentArg);
                 }
+                currentArg = '';
+                hasArgContent = false;
             }
+            continue;
+        }
+
+        currentArg += char;
+        hasArgContent = true;
+    }
+
+    if (hasArgContent) {
+        if (!expression.command) {
+            expression.command = currentArg;
+        } else {
+            expression.args.push(currentArg);
         }
     }
+
     return expression;
 }
-
