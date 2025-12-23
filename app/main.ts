@@ -7,6 +7,10 @@ import external_commands from "./commands/external_commands";
 import pwd from "./commands/pwd";
 import cd from "./commands/cd";
 import processExp from "./util/processExp";
+import processRedirectionOperators from "./util/processRedirectionOperator";
+import type { outputType } from "./util/outputType";
+import { error } from "console";
+import processOutput from "./util/processOutput";
 
 const rl = createInterface({
   input: process.stdin,
@@ -22,41 +26,48 @@ function exit() {
   rl.close();
 }
 
-function noCommandMatch(command: string) {
-  printf(`${command}: command not found\n`);
+function noCommandMatch(command: string) : outputType {
+  return {
+    erro : true,
+    content : `${command}: command not found\n`
+  } 
 }
 
 function main() {
   const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
+  let output : outputType = {erro : false, content : ''} ;
   printf("$ ");
   rl.on("line", async (input) => {
     if (!input.trim()) {
       printf("$ ");
       return;
     }
+    let redirectionInfo : string[] = [];
     const expression = processExp(input);
+    [expression.args, redirectionInfo] = processRedirectionOperators(expression);
     const command = expression.command ?? ''
     switch (command) {
       case "exit":
         exit();
         return;
       case "echo":
-        echo(expression.args.join(' '));
+        output = echo(expression.args.join(' '));
         break;
       case "type":
-        await typef(expression.args.join(' '), builtinCommands);
+        output = await typef(expression.args.join(' '), builtinCommands);
         break;
       case "pwd":
-        pwd();
+        output = pwd();
         break;
       case "cd":
-        await cd(expression.args.join(' '));
+        output = await cd(expression.args.join(' ')) ?? { erro: false, content: '' };
         break;
       default:
         if (await verifyIfTheExecExistsOrHasPermissions(command))
-          await external_commands(command, expression.args);
-        else noCommandMatch(command);
+          output = await external_commands(command, expression.args);
+        else output = noCommandMatch(command);
     }
+    await processOutput(output, redirectionInfo);
     printf("$ ");
   });
 }

@@ -11,8 +11,8 @@ export default async function cd(path: string) {
     path = handleHomeRef(path);
     const stats = await stat(path);
     if (stats.isDirectory()) process.chdir(path);
-    else printf(`cd: ${path}: No such file or directory\n`);
+    else return { erro: true, content: `cd: ${path}: No such file or directory\n` };
   } catch {
-    printf(`cd: ${path}: No such file or directory\n`);
+    return { erro: true, content: `cd: ${path}: No such file or directory\n` };
   }
 }

@@ -1,6 +1,7 @@
 import processExp from "./app/util/processExp";
+import processRedirectionOperators from "./app/util/processRedirectionOperator";
 
 
-let teste = " echo \'\"hello test\"\'";
+let teste = "cd /home";
 
-console.log(processExp(teste));
+console.log(processRedirectionOperators(processExp(teste)));
