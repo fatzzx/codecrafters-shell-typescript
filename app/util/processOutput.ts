@@ -1,5 +1,6 @@
 import type { outputType } from "./outputType";
 import printf from "./printf";
+import { appendFile } from "node:fs/promises";
 
 export default async function processOutput(
   output: outputType,
@@ -25,7 +26,11 @@ export default async function processOutput(
 
   if (operator === ">" || operator === "1>") {
     await Bun.write(filePath, output.content);
-
+    if (output.erro) printf(stderrContent);
+    return;
+  }
+  if (operator === ">>" || operator === "1>>") {
+    await appendFile(filePath, output.content);
     if (output.erro) printf(stderrContent);
     return;
   }
