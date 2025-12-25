@@ -12,12 +12,15 @@ import type { outputType } from "./util/outputType";
 import { error } from "console";
 import processOutput from "./util/processOutput";
 import { Trie } from "./util/TrieTree";
+import getAllExecs from "./util/getAllExec";
 
 const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
+const execs = await getAllExecs();
 
 function completer(currentInput: string) {
   const trie = new Trie();
-  builtinCommands.forEach((com) => trie.insert(com));
+  const allCommands = [...builtinCommands, ...execs];
+  allCommands.forEach((com) => trie.insert(com));
   const options = trie.startsWith(currentInput);
   if (options.length === 0) printf("\x07");
   return [options, currentInput];
