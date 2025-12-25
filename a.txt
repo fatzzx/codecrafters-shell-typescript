@@ -1,9 +1,0 @@
-README.md
-a.ts
-app
-bun.lockb
-codecrafters.yml
-node_modules
-package.json
-tsconfig.json
-your_program.sh

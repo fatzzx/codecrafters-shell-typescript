@@ -1,4 +1,5 @@
 export type outputType = {
-    erro : boolean;
-    content : string;
-}
+  erro: boolean;
+  content: string;
+  stderr?: string;
+};

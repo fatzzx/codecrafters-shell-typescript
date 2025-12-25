@@ -3,12 +3,18 @@ import printf from "../util/printf";
 
 export default async function external_commands(path: string, args: string[]) {
   const proc = Bun.spawn([path, ...args], {
-    stdout: "pipe"
+    stdout: "pipe",
+    stderr: "pipe",
   });
 
-  const output = await new Response(proc.stdout).text();
+  const outputStdout = await new Response(proc.stdout).text();
+  const outputStderr = await new Response(proc.stderr).text();
+
+  await proc.exited;
+
   return {
-    erro : (proc.exitCode !== 0) ? false : true,
-    content : output
-  }
+    erro: proc.exitCode !== 0,
+    content: outputStdout,
+    stderr: outputStderr,
+  };
 }
