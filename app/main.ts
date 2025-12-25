@@ -18,7 +18,9 @@ const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
 function completer(currentInput: string) {
   const trie = new Trie();
   builtinCommands.forEach((com) => trie.insert(com));
-  return [trie.startsWith(currentInput), currentInput];
+  const options = trie.startsWith(currentInput);
+  if (options.length === 0) printf("\x07");
+  return [options, currentInput];
 }
 
 const rl = createInterface({
