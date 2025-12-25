@@ -34,4 +34,9 @@ export default async function processOutput(
     if (output.erro) printf(stderrContent);
     return;
   }
+  if (operator === "2>>") {
+    await appendFile(filePath, stderrContent);
+    if (output.content) printf(output.content);
+    return;
+  }
 }
