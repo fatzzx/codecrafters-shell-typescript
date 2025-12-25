@@ -11,11 +11,21 @@ import processRedirectionOperators from "./util/processRedirectionOperator";
 import type { outputType } from "./util/outputType";
 import { error } from "console";
 import processOutput from "./util/processOutput";
+import { Trie } from "./util/TrieTree";
+
+const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
+
+function completer(currentInput: string) {
+  const trie = new Trie();
+  builtinCommands.forEach((com) => trie.insert(com));
+  return [trie.startsWith(currentInput), currentInput];
+}
 
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
-  terminal: false,
+  terminal: true,
+  completer: completer,
 });
 
 rl.on("close", () => {
@@ -26,41 +36,44 @@ function exit() {
   rl.close();
 }
 
-function noCommandMatch(command: string) : outputType {
+function noCommandMatch(command: string): outputType {
   return {
-    erro : true,
-    content : `${command}: command not found\n`
-  } 
+    erro: true,
+    content: `${command}: command not found\n`,
+  };
 }
 
 function main() {
-  const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
-  let output : outputType = {erro : false, content : ''} ;
+  let output: outputType = { erro: false, content: "" };
   printf("$ ");
   rl.on("line", async (input) => {
     if (!input.trim()) {
       printf("$ ");
       return;
     }
-    let redirectionInfo : string[] = [];
+    let redirectionInfo: string[] = [];
     const expression = processExp(input);
-    [expression.args, redirectionInfo] = processRedirectionOperators(expression);
-    const command = expression.command ?? ''
+    [expression.args, redirectionInfo] =
+      processRedirectionOperators(expression);
+    const command = expression.command ?? "";
     switch (command) {
       case "exit":
         exit();
         return;
       case "echo":
-        output = echo(expression.args.join(' '));
+        output = echo(expression.args.join(" "));
         break;
       case "type":
-        output = await typef(expression.args.join(' '), builtinCommands);
+        output = await typef(expression.args.join(" "), builtinCommands);
         break;
       case "pwd":
         output = pwd();
         break;
       case "cd":
-        output = await cd(expression.args.join(' ')) ?? { erro: false, content: '' };
+        output = (await cd(expression.args.join(" "))) ?? {
+          erro: false,
+          content: "",
+        };
         break;
       default:
         if (await verifyIfTheExecExistsOrHasPermissions(command))
