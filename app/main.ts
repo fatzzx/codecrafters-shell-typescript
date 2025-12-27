@@ -9,7 +9,6 @@ import cd from "./commands/cd";
 import processExp from "./util/processExp";
 import processRedirectionOperators from "./util/processRedirectionOperator";
 import type { outputType } from "./util/outputType";
-import { error } from "console";
 import processOutput from "./util/processOutput";
 import { Trie } from "./util/TrieTree";
 import getAllExecs from "./util/getAllExec";
@@ -42,25 +41,27 @@ process.stdin.on("keypress", (str, key) => {
     const matches = trie.startsWith(input);
 
     if (matches.length === 1) {
-      const match = matches[0].trim();
+      const match = matches[0];
       const remainder = match.slice(input.length) + " ";
       rl.write(remainder);
       lastKeyWasTab = false;
     } else if (matches.length > 1) {
-      if (!lastKeyWasTab) {
-        process.stdout.write("\x07");
-        lastKeyWasTab = true;
-      } else {
-        process.stdout.write("\n");
-        process.stdout.write(
-          matches
-            .map((m) => m.trim())
-            .sort()
-            .join("  "),
-        );
-        process.stdout.write("\n");
-        rl.prompt(true);
+      const lcp = trie.findLongestCommonPrefix(input);
+      if (lcp.length > input.length) {
+        const remainder = lcp.slice(input.length);
+        rl.write(remainder);
         lastKeyWasTab = false;
+      } else {
+        if (!lastKeyWasTab) {
+          process.stdout.write("\x07");
+          lastKeyWasTab = true;
+        } else {
+          process.stdout.write("\n");
+          process.stdout.write(matches.sort().join("  "));
+          process.stdout.write("\n");
+          rl.prompt(true);
+          lastKeyWasTab = false;
+        }
       }
     } else {
       process.stdout.write("\x07");

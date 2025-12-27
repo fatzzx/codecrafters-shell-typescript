@@ -1,5 +1,3 @@
-import printf from "./printf";
-
 class TreeNode {
   children: Map<string, TreeNode>;
   end: boolean;
@@ -35,7 +33,7 @@ export class Trie {
 
     const collectWords = (currentNode: TreeNode, currentWord: string) => {
       if (currentNode.end) {
-        wordsList.push(currentWord + " ");
+        wordsList.push(currentWord);
       }
 
       for (const [c, n] of currentNode.children) {
@@ -45,5 +43,23 @@ export class Trie {
     collectWords(node, prefix);
 
     return wordsList;
+  }
+
+  findLongestCommonPrefix(prefix: string): string {
+    let node = this.root;
+    for (const c of prefix) {
+      if (!node.children.has(c)) return prefix;
+      node = node.children.get(c)!;
+    }
+
+    let lcp = prefix;
+    while (true) {
+      if (node.end) break;
+      if (node.children.size !== 1) break;
+      const [char, nextNode] = node.children.entries().next().value!;
+      lcp += char;
+      node = nextNode;
+    }
+    return lcp;
   }
 }
