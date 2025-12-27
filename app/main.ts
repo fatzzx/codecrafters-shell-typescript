@@ -1,4 +1,4 @@
-import { createInterface } from "readline";
+import { createInterface, emitKeypressEvents } from "readline";
 import typef from "./commands/type";
 import printf from "./util/printf";
 import echo from "./commands/echo";
@@ -16,21 +16,61 @@ import getAllExecs from "./util/getAllExec";
 
 const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
 const execs = await getAllExecs();
+const trie = new Trie();
+const allCommands = [...builtinCommands, ...execs];
+allCommands.forEach((com) => trie.insert(com));
 
-function completer(currentInput: string) {
-  const trie = new Trie();
-  const allCommands = [...builtinCommands, ...execs];
-  allCommands.forEach((com) => trie.insert(com));
-  const options = trie.startsWith(currentInput);
-  if (options.length === 0) printf("\x07");
-  return [options, currentInput];
-}
+let lastKeyWasTab = false;
 
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
   terminal: true,
-  completer: completer,
+  completer: () => [[], ""],
+});
+
+rl.setPrompt("$ ");
+
+emitKeypressEvents(process.stdin);
+if (process.stdin.isTTY) {
+  process.stdin.setRawMode(true);
+}
+
+process.stdin.on("keypress", (str, key) => {
+  if (key && key.name === "tab") {
+    const input = rl.line;
+    const matches = trie.startsWith(input);
+
+    if (matches.length === 1) {
+      const match = matches[0].trim();
+      const remainder = match.slice(input.length) + " ";
+      rl.write(remainder);
+      lastKeyWasTab = false;
+    } else if (matches.length > 1) {
+      if (!lastKeyWasTab) {
+        process.stdout.write("\x07");
+        lastKeyWasTab = true;
+      } else {
+        process.stdout.write("\n");
+        process.stdout.write(
+          matches
+            .map((m) => m.trim())
+            .sort()
+            .join("  "),
+        );
+        process.stdout.write("\n");
+        rl.prompt(true);
+        lastKeyWasTab = false;
+      }
+    } else {
+      process.stdout.write("\x07");
+      lastKeyWasTab = false;
+    }
+  } else {
+    if (key && key.name !== "tab") {
+      lastKeyWasTab = false;
+    }
+  }
 });
 
 rl.on("close", () => {
