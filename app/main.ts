@@ -12,6 +12,8 @@ import type { outputType } from "./util/outputType";
 import processOutput from "./util/processOutput";
 import { Trie } from "./util/TrieTree";
 import getAllExecs from "./util/getAllExec";
+import { splitPipeline } from "./util/splitPipeline";
+import { executePipeline } from "./commands/pipeline";
 
 const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
 const execs = await getAllExecs();
@@ -97,6 +99,14 @@ function main() {
       printf("$ ");
       return;
     }
+
+    const pipelineParts = splitPipeline(input);
+    if (pipelineParts.length > 1) {
+      await executePipeline(input, pipelineParts);
+      printf("$ ");
+      return;
+    }
+
     let redirectionInfo: string[] = [];
     const expression = processExp(input);
     [expression.args, redirectionInfo] =
