@@ -1,11 +1,7 @@
 import { createInterface, emitKeypressEvents } from "readline";
-import typef from "./commands/type";
 import printf from "./util/printf";
-import echo from "./commands/echo";
 import verifyIfTheExecExistsOrHasPermissions from "./util/findFile";
 import external_commands from "./commands/external_commands";
-import pwd from "./commands/pwd";
-import cd from "./commands/cd";
 import processExp from "./util/processExp";
 import processRedirectionOperators from "./util/processRedirectionOperator";
 import type { outputType } from "./util/outputType";
@@ -14,6 +10,7 @@ import { Trie } from "./util/TrieTree";
 import getAllExecs from "./util/getAllExec";
 import { splitPipeline } from "./util/splitPipeline";
 import { executePipeline } from "./commands/pipeline";
+import { executeCommand } from "./util/execBuiltin";
 
 const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
 const execs = await getAllExecs();
@@ -112,30 +109,22 @@ function main() {
     [expression.args, redirectionInfo] =
       processRedirectionOperators(expression);
     const command = expression.command ?? "";
-    switch (command) {
-      case "exit":
-        exit();
-        return;
-      case "echo":
-        output = echo(expression.args.join(" "));
-        break;
-      case "type":
-        output = await typef(expression.args.join(" "), builtinCommands);
-        break;
-      case "pwd":
-        output = pwd();
-        break;
-      case "cd":
-        output = (await cd(expression.args.join(" "))) ?? {
-          erro: false,
-          content: "",
-        };
-        break;
-      default:
-        if (await verifyIfTheExecExistsOrHasPermissions(command))
-          output = await external_commands(command, expression.args);
-        else output = noCommandMatch(command);
+
+    if (command === "exit") {
+      exit();
+      return;
     }
+
+    const builtinResult = await executeCommand(command, expression.args);
+
+    if (builtinResult !== null) {
+      output = builtinResult;
+    } else {
+      if (await verifyIfTheExecExistsOrHasPermissions(command))
+        output = await external_commands(command, expression.args);
+      else output = noCommandMatch(command);
+    }
+
     await processOutput(output, redirectionInfo);
     printf("$ ");
   });

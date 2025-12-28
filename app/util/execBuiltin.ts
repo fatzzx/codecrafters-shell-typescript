@@ -1,0 +1,31 @@
+import echo from "../commands/echo";
+import typef from "../commands/type";
+import pwd from "../commands/pwd";
+import cd from "../commands/cd";
+import type { outputType } from "./outputType";
+
+const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
+
+export async function executeCommand(
+  command: string,
+  args: string[],
+): Promise<outputType | null> {
+  switch (command) {
+    case "echo":
+      return echo(args.join(" "));
+    case "type":
+      return await typef(args.join(" "), builtinCommands);
+    case "pwd":
+      return pwd();
+    case "cd":
+      return (await cd(args.join(" "))) ?? { erro: false, content: "" };
+    case "exit":
+      return { erro: false, content: "" };
+    default:
+      return null;
+  }
+}
+
+export function isBuiltin(command: string): boolean {
+  return builtinCommands.includes(command);
+}
