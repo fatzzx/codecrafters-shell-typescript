@@ -10,9 +10,13 @@ import { Trie } from "./util/TrieTree";
 import getAllExecs from "./util/getAllExec";
 import { splitPipeline } from "./util/splitPipeline";
 import { executePipeline } from "./commands/pipeline";
-import { executeCommand } from "./util/execBuiltin";
+import { executeCommand, builtinCommands } from "./util/execBuiltin";
+import { addHistory } from "./util/historyStore";
+import typef from "./commands/type";
+import echo from "./commands/echo";
+import pwd from "./commands/pwd";
+import cd from "./commands/cd";
 
-const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
 const execs = await getAllExecs();
 const trie = new Trie();
 const allCommands = [...builtinCommands, ...execs];
@@ -92,10 +96,13 @@ function main() {
   let output: outputType = { erro: false, content: "" };
   printf("$ ");
   rl.on("line", async (input) => {
-    if (!input.trim()) {
+    const trimmedInput = input.trim();
+    if (!trimmedInput) {
       printf("$ ");
       return;
     }
+
+    addHistory(trimmedInput);
 
     const pipelineParts = splitPipeline(input);
     if (pipelineParts.length > 1) {

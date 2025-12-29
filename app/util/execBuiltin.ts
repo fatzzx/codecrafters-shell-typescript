@@ -2,9 +2,10 @@ import echo from "../commands/echo";
 import typef from "../commands/type";
 import pwd from "../commands/pwd";
 import cd from "../commands/cd";
+import historyCommand from "../commands/history";
 import type { outputType } from "./outputType";
 
-const builtinCommands = ["echo", "type", "exit", "pwd", "cd"];
+export const builtinCommands = ["echo", "type", "exit", "pwd", "cd", "history"];
 
 export async function executeCommand(
   command: string,
@@ -19,6 +20,8 @@ export async function executeCommand(
       return pwd();
     case "cd":
       return (await cd(args.join(" "))) ?? { erro: false, content: "" };
+    case "history":
+      return historyCommand();
     case "exit":
       return { erro: false, content: "" };
     default:
