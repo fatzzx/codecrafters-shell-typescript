@@ -11,12 +11,8 @@ import getAllExecs from "./util/getAllExec";
 import { splitPipeline } from "./util/splitPipeline";
 import { executePipeline } from "./commands/pipeline";
 import { executeCommand } from "./util/execBuiltin";
-import { addHistory } from "./util/historyStore";
-import typef from "./commands/type";
-import echo from "./commands/echo";
-import pwd from "./commands/pwd";
-import cd from "./commands/cd";
-import { readFile } from "fs/promises";
+import { addHistory, getHistory } from "./util/historyStore";
+import { readFile, writeFile } from "fs/promises";
 import { existsSync } from "fs";
 
 const builtinCommands = ["echo", "type", "exit", "pwd", "cd", "history"];
@@ -109,6 +105,16 @@ async function loadHistory() {
   }
 }
 
+async function saveHistory() {
+  if (process.env.HISTFILE) {
+    try {
+      const hist = getHistory();
+      const content = hist.join("\n") + "\n";
+      await writeFile(process.env.HISTFILE, content, "utf-8");
+    } catch {}
+  }
+}
+
 async function main() {
   await loadHistory();
 
@@ -137,6 +143,7 @@ async function main() {
     const command = expression.command ?? "";
 
     if (command === "exit") {
+      await saveHistory();
       exit();
       return;
     }
