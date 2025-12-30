@@ -1,6 +1,11 @@
-import { getHistory, addHistory } from "../util/historyStore";
+import {
+  getHistory,
+  addHistory,
+  getNewHistory,
+  markHistorySaved,
+} from "../util/historyStore";
 import type { outputType } from "../util/outputType";
-import { readFile, writeFile } from "fs/promises";
+import { readFile, writeFile, appendFile } from "fs/promises";
 import { existsSync } from "fs";
 
 export default async function historyCommand(
@@ -31,7 +36,23 @@ export default async function historyCommand(
 
     try {
       await writeFile(filePath, content, "utf-8");
+      markHistorySaved();
     } catch (error) {}
+
+    return { erro: false, content: "" };
+  }
+
+  if (args.length >= 2 && args[0] === "-a") {
+    const filePath = args[1];
+    const newCmds = getNewHistory();
+
+    if (newCmds.length > 0) {
+      const content = newCmds.join("\n") + "\n";
+      try {
+        await appendFile(filePath, content, "utf-8");
+        markHistorySaved();
+      } catch (error) {}
+    }
 
     return { erro: false, content: "" };
   }
