@@ -1,11 +1,33 @@
-import { getHistory } from "../util/historyStore";
+import { getHistory, addHistory } from "../util/historyStore";
 import type { outputType } from "../util/outputType";
+import { readFile } from "fs/promises";
+import { existsSync } from "fs";
 
-export default function historyCommand(args: string[] = []): outputType {
+export default async function historyCommand(
+  args: string[] = [],
+): Promise<outputType> {
+  if (args.length >= 2 && args[0] === "-r") {
+    const filePath = args[1];
+
+    if (existsSync(filePath)) {
+      try {
+        const content = await readFile(filePath, "utf-8");
+        const lines = content.split("\n");
+        for (const line of lines) {
+          if (line.trim()) {
+            addHistory(line);
+          }
+        }
+      } catch (error) {}
+    }
+
+    return { erro: false, content: "" };
+  }
+
   const hist = getHistory();
   let count = hist.length;
 
-  if (args && args.length > 0) {
+  if (args.length > 0) {
     const parsed = parseInt(args[0], 10);
     if (!isNaN(parsed)) {
       count = parsed;

@@ -21,7 +21,7 @@ export async function executeCommand(
     case "cd":
       return (await cd(args.join(" "))) ?? { erro: false, content: "" };
     case "history":
-      return historyCommand(args);
+      return await historyCommand(args);
     case "exit":
       return { erro: false, content: "" };
     default:
