@@ -10,13 +10,16 @@ import { Trie } from "./util/TrieTree";
 import getAllExecs from "./util/getAllExec";
 import { splitPipeline } from "./util/splitPipeline";
 import { executePipeline } from "./commands/pipeline";
-import { executeCommand, builtinCommands } from "./util/execBuiltin";
+import { executeCommand } from "./util/execBuiltin";
 import { addHistory } from "./util/historyStore";
 import typef from "./commands/type";
 import echo from "./commands/echo";
 import pwd from "./commands/pwd";
 import cd from "./commands/cd";
+import { readFile } from "fs/promises";
+import { existsSync } from "fs";
 
+const builtinCommands = ["echo", "type", "exit", "pwd", "cd", "history"];
 const execs = await getAllExecs();
 const trie = new Trie();
 const allCommands = [...builtinCommands, ...execs];
@@ -92,7 +95,23 @@ function noCommandMatch(command: string): outputType {
   };
 }
 
-function main() {
+async function loadHistory() {
+  if (process.env.HISTFILE && existsSync(process.env.HISTFILE)) {
+    try {
+      const content = await readFile(process.env.HISTFILE, "utf-8");
+      const lines = content.split("\n");
+      for (const line of lines) {
+        if (line.trim()) {
+          addHistory(line);
+        }
+      }
+    } catch {}
+  }
+}
+
+async function main() {
+  await loadHistory();
+
   let output: outputType = { erro: false, content: "" };
   printf("$ ");
   rl.on("line", async (input) => {
